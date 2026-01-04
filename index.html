@@ -42,7 +42,35 @@ button {
     cursor:pointer;
     margin:10px;
 }
-#resultView { display:none; }
+#resultView {
+    display: none;
+}
+
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+
+    #examView {
+        display: none !important;
+    }
+
+    #resultView {
+        display: block !important;
+    }
+
+    button {
+        display: none !important;
+    }
+
+    .container {
+        box-shadow: none;
+        border-radius: 0;
+        max-width: 100%;
+    }
+}
+
 </style>
 </head>
 
@@ -148,48 +176,47 @@ questions.forEach((q,i)=>{
 });
 
 function submitExam(){
-    let score=0;
-    let reviewHTML="";
-    
+    let score = 0;
+    let reviewHTML = "";
+
     questions.forEach((q,i)=>{
-        let selected=document.querySelector(`input[name="q${i}"]:checked`);
-        let userAns=selected?Number(selected.value):-1;
+        let selected = document.querySelector(`input[name="q${i}"]:checked`);
+        let userAns = selected ? Number(selected.value) : -1;
 
-        if(userAns===q.a) score++;
+        if(userAns === q.a) score++;
 
-        reviewHTML+=`<div class="question">
-        <p><b>${i+1}. ${q.q}</b></p>`;
+        reviewHTML += `<div class="question">
+            <p><b>${i+1}. ${q.q}</b></p>`;
 
         q.o.forEach((opt,j)=>{
-            if(j===q.a){
-                reviewHTML+=`<p class="correct">✔ ${escapeHTML(opt)} (Correct)</p>`;
-            } else if(j===userAns){
-                reviewHTML+=`<p class="wrong">❌ ${escapeHTML(opt)} (Your Answer)</p>`;
+            if(j === q.a){
+                reviewHTML += `<p class="correct">✔ ${escapeHTML(opt)}</p>`;
+            } 
+            else if(j === userAns){
+                reviewHTML += `<p class="wrong">✖ ${escapeHTML(opt)}</p>`;
+            } 
+            else {
+                reviewHTML += `<p>○ ${escapeHTML(opt)}</p>`;
             }
         });
 
-        reviewHTML+=`</div>`;
+        reviewHTML += `</div>`;
     });
 
-    document.getElementById("examView").style.display="none";
-    document.getElementById("resultView").style.display="block";
+    document.getElementById("examView").style.display = "none";
+    document.getElementById("resultView").style.display = "block";
 
-    document.getElementById("summary").innerHTML=`
-    <h3>Score: ${score} / ${questions.length}</h3>
-    <h3>Percentage: ${(score/questions.length*100).toFixed(2)}%</h3>`;
+    document.getElementById("summary").innerHTML = `
+        <h3>Score: ${score} / ${questions.length}</h3>
+        <h3>Percentage: ${(score/questions.length*100).toFixed(2)}%</h3>
+    `;
 
-    document.getElementById("answerReview").innerHTML=reviewHTML;
+    document.getElementById("answerReview").innerHTML = reviewHTML;
 }
 
-function downloadResult(){
-    let text=document.getElementById("resultView").innerText;
-    let blob=new Blob([text],{type:"text/plain"});
-    let link=document.createElement("a");
-    link.href=URL.createObjectURL(blob);
-    link.download="Exam_Result.txt";
-    link.click();
+function downloadResult() {
+    window.print();
 }
 </script>
-
 </body>
 </html>
