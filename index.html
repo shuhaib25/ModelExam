@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Online MCQ Exam</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    background: #fff;
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 15px;
+}
+h1 { text-align:center; }
+
+.question {
+    background:#f9f9f9;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+.options label {
+    display:block;
+    padding:6px;
+}
+.correct { color:green; font-weight:bold; }
+.wrong { color:red; font-weight:bold; }
+
+button {
+    padding:10px 25px;
+    border:none;
+    background:#ff6b6b;
+    color:#fff;
+    border-radius:20px;
+    cursor:pointer;
+    margin:10px;
+}
+#resultView { display:none; }
+</style>
+</head>
+
+<body>
+
+<div class="container" id="examView">
+<h1>Online MCQ Exam</h1>
+<p><b>Total Questions:</b> 50 | <b>Each:</b> 1 Mark</p>
+
+<form id="examForm">
+<div id="questions"></div>
+<button type="button" onclick="submitExam()">Submit Exam</button>
+</form>
+</div>
+
+<!-- RESULT VIEW -->
+<div class="container" id="resultView">
+<h1>Exam Result</h1>
+<div id="summary"></div>
+<div id="answerReview"></div>
+
+<button onclick="downloadResult()">Download Result</button>
+<button onclick="location.reload()">Restart Exam</button>
+</div>
+
+<script>
+function escapeHTML(text){
+    return text.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+const questions = [
+{q:"HTML stands for?", o:["Hyper Text Markup Language","High Text Machine Language","Hyper Tool Markup","None"], a:0},
+{q:"Which tag creates a hyperlink?", o:["<a>","<link>","<href>","<url>"], a:0},
+{q:"Which tag is used for images?", o:["<img>","<image>","<pic>","<src>"], a:0},
+{q:"Which attribute specifies image path?", o:["href","src","path","link"], a:1},
+{q:"Which tag is used for list item?", o:["<li>","<ul>","<ol>","<list>"], a:0},
+{q:"Which tag is used for headings?", o:["<h1> to <h6>","<head>","<header>","<title>"], a:0},
+{q:"Which tag creates table row?", o:["<tr>","<td>","<th>","<table>"], a:0},
+{q:"Which tag is used for forms?", o:["<input>","<form>","<data>","<submit>"], a:1},
+{q:"HTML is a _ language.", o:["Programming","Markup","Scripting","Query"], a:1},
+{q:"Which tag creates line break?", o:["<lb>","<break>","<br>","<hr>"], a:2},
+
+{q:"CSS stands for?", o:["Creative Style Sheets","Cascading Style Sheets","Color Style Sheets","Computer Style"], a:1},
+{q:"Class selector uses which symbol?", o:["#",".","*","@"], a:1},
+{q:"ID selector uses which symbol?", o:[".","#","*","@"], a:1},
+{q:"Which property changes text color?", o:["font-color","color","text-color","fgcolor"], a:1},
+{q:"Which property sets background color?", o:["bg-color","background-color","color-bg","bg"], a:1},
+{q:"CSS is used for?", o:["Structure","Logic","Styling","Database"], a:2},
+{q:"Which property sets font size?", o:["text-size","font-size","size","font"], a:1},
+{q:"Which unit is relative?", o:["px","cm","%","pt"], a:2},
+{q:"Which property aligns text?", o:["align","text-align","position","float"], a:1},
+{q:"Inline CSS is written in?", o:["<style>","HTML attribute","External file","JS"], a:1},
+
+{q:"JavaScript is a _ language.", o:["Markup","Styling","Scripting","Database"], a:2},
+{q:"Which keyword declares variable?", o:["var","int","float","string"], a:0},
+{q:"Single line comment symbol?", o:["//","<!-- -->","#","**"], a:0},
+{q:"Which function shows alert box?", o:["alert()","msg()","box()","pop()"], a:0},
+{q:"Which operator checks value and type?", o:["==","=","===","!="], a:2},
+{q:"JavaScript runs on?", o:["Server","Browser","Database","Compiler"], a:1},
+{q:"Which event occurs on button click?", o:["onload","onclick","onchange","onsubmit"], a:1},
+{q:"Which method writes HTML output?", o:["write()","document.write()","print()","show()"], a:1},
+{q:"Which is NOT a JS data type?", o:["Number","Boolean","Float","String"], a:2},
+{q:"JavaScript file extension?", o:[".java",".js",".script",".json"], a:1},
+
+{q:"MySQL is a _ database.", o:["NoSQL","Relational","Object","File"], a:1},
+{q:"Which command retrieves data?", o:["GET","SELECT","FETCH","SHOW"], a:1},
+{q:"Which command inserts data?", o:["ADD","INSERT","PUT","SAVE"], a:1},
+{q:"Which command deletes data?", o:["REMOVE","DELETE","DROP","CLEAR"], a:1},
+{q:"Which clause filters records?", o:["WHERE","FROM","SELECT","TABLE"], a:0},
+{q:"Primary key must be?", o:["Duplicate","NULL","Unique","Optional"], a:2},
+{q:"Command to create database?", o:["MAKE","CREATE DATABASE","NEW DB","INIT"], a:1},
+{q:"Which command updates records?", o:["CHANGE","MODIFY","UPDATE","SET"], a:2},
+{q:"Which symbol selects all columns?", o:["%","#","*","@"], a:2},
+{q:"MySQL uses which language?", o:["C","SQL","PHP","Java"], a:1},
+
+{q:"PHP stands for?", o:["Personal Home Page","Private Home Page","Programming Home","Hyper PHP"], a:0},
+{q:"PHP code starts with?", o:["<script>","<?php","<php>","<?"], a:1},
+{q:"PHP runs on?", o:["Browser","Server","Client","Database"], a:1},
+{q:"Which symbol defines variable?", o:["@","#","$","&"], a:2},
+{q:"Which outputs text in PHP?", o:["print()","echo","write()","show()"], a:1},
+{q:"PHP file extension?", o:[".html",".js",".php",".sql"], a:2},
+{q:"Which method gets form data?", o:["POST, GET","SEND","FETCH","FORM"], a:0},
+{q:"Which function connects MySQL?", o:["mysql_connect()","mysqli_connect()","db_connect()","sql_connect()"], a:1},
+{q:"Session starts with?", o:["session_start()","start_session()","begin_session()","open_session()"], a:0},
+{q:"PHP is mainly used for?", o:["Styling","Database","Server scripting","Design"], a:2}
+];
+
+const container = document.getElementById("questions");
+
+questions.forEach((q,i)=>{
+    let div=document.createElement("div");
+    div.className="question";
+    let html=`<p><b>${i+1}. ${q.q}</b></p>`;
+    q.o.forEach((opt,j)=>{
+        html+=`
+        <label>
+        <input type="radio" name="q${i}" value="${j}">
+        ${escapeHTML(opt)}
+        </label>`;
+    });
+    div.innerHTML=html;
+    container.appendChild(div);
+});
+
+function submitExam(){
+    let score=0;
+    let reviewHTML="";
+    
+    questions.forEach((q,i)=>{
+        let selected=document.querySelector(`input[name="q${i}"]:checked`);
+        let userAns=selected?Number(selected.value):-1;
+
+        if(userAns===q.a) score++;
+
+        reviewHTML+=`<div class="question">
+        <p><b>${i+1}. ${q.q}</b></p>`;
+
+        q.o.forEach((opt,j)=>{
+            if(j===q.a){
+                reviewHTML+=`<p class="correct">✔ ${escapeHTML(opt)} (Correct)</p>`;
+            } else if(j===userAns){
+                reviewHTML+=`<p class="wrong">❌ ${escapeHTML(opt)} (Your Answer)</p>`;
+            }
+        });
+
+        reviewHTML+=`</div>`;
+    });
+
+    document.getElementById("examView").style.display="none";
+    document.getElementById("resultView").style.display="block";
+
+    document.getElementById("summary").innerHTML=`
+    <h3>Score: ${score} / ${questions.length}</h3>
+    <h3>Percentage: ${(score/questions.length*100).toFixed(2)}%</h3>`;
+
+    document.getElementById("answerReview").innerHTML=reviewHTML;
+}
+
+function downloadResult(){
+    let text=document.getElementById("resultView").innerText;
+    let blob=new Blob([text],{type:"text/plain"});
+    let link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.download="Exam_Result.txt";
+    link.click();
+}
+</script>
+
+</body>
+</html>
